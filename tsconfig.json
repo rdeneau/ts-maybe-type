@@ -1,0 +1,18 @@
+{
+  "compileOnSave": true,
+  "compilerOptions": {
+    "declaration": true,
+    "module": "ES6",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "outDir": "./dist",
+    "skipLibCheck": true,
+    "target": "ES6",
+    "strict": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "src/**/*.spec.ts"]
+}

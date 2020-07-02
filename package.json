@@ -1,0 +1,36 @@
+{
+  "name": "sort-helper",
+  "version": "1.0.4",
+  "description": "Micro library to help sorting arrays of objects more expressively",
+  "files": [
+    "dist/**/*"
+  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test",
+    "version": "git add -A src",
+    "postversion": "git push && git push --tags",
+    "test": "jest",
+    "tdd": "jest --watchAll"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rdeneau/sort-helper.git"
+  },
+  "author": "Romain Deneau",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rdeneau/sort-helper/issues"
+  },
+  "homepage": "https://github.com/rdeneau/sort-helper#readme",
+  "devDependencies": {
+    "@types/jest": "^25.2.3",
+    "@types/node": "^14.0.11",
+    "jest": "^26.0.1",
+    "ts-jest": "^26.1.0",
+    "typescript": "^3.9.5"
+  }
+}
