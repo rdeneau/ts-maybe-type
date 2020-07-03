@@ -1,7 +1,7 @@
 {
-  "name": "sort-helper",
-  "version": "1.0.4",
-  "description": "Micro library to help sorting arrays of objects more expressively",
+  "name": "ts-maybe-type",
+  "version": "1.0.0",
+  "description": "Object-oriented implementation of the Maybe type in TypeScript",
   "files": [
     "dist/**/*"
   ],
@@ -18,14 +18,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rdeneau/sort-helper.git"
+    "url": "git+https://github.com/rdeneau/ts-maybe-type.git"
   },
   "author": "Romain Deneau",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/rdeneau/sort-helper/issues"
+    "url": "https://github.com/rdeneau/ts-maybe-type/issues"
   },
-  "homepage": "https://github.com/rdeneau/sort-helper#readme",
+  "homepage": "https://github.com/rdeneau/ts-maybe-type#readme",
   "devDependencies": {
     "@types/jest": "^25.2.3",
     "@types/node": "^14.0.11",
