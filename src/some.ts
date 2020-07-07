@@ -31,4 +31,8 @@ export class Some<T> implements Maybe<T> {
   valueOrDefault(): T {
     return this.value;
   }
+
+  valueOrGet(): T {
+    return this.value;
+  }
 }

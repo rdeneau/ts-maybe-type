@@ -46,24 +46,6 @@ describe('Maybe', () => {
     });
   });
 
-  describe('map()', () => {
-    const extractUpperLabel = (x: Content) => x.label.toUpperCase();
-
-    fixtureForSome.test(sut => {
-      it(`should map its content`, () => {
-        const result = sut.map(extractUpperLabel);
-        expect(result).toEqual(Maybe.some(('ANY LABEL')));
-      });
-    });
-
-    fixtureForNone.test(sut => {
-      it(`should map nothing and return itself`, () => {
-        const result = sut.map(extractUpperLabel);
-        expect(result).toEqual(Maybe.none());
-      });
-    });
-  });
-
   describe('flatMap()', () => {
     fixtureForSome.test(sut => {
       it(`should return the result of calling 'tryMap' with its content`, () => {
@@ -115,6 +97,23 @@ describe('Maybe', () => {
       const input = Maybe.none<number>();
       const result = input.valueOrDefault(0);
       expect(result).toBe(0);
+    });
+  });
+
+  describe('valueOrGet', () => {
+    it(`should return existing content`, () => {
+      const input = Maybe.some(1);
+      const getDefaultValue = jest.fn(() => -1);
+
+      const result = input.valueOrGet(getDefaultValue);
+      expect(result).toBe(1);
+      expect(getDefaultValue).not.toHaveBeenCalled();
+    });
+
+    it(`should return given default value when none`, () => {
+      const input = Maybe.none<number>();
+      const result = input.valueOrGet(() => -1);
+      expect(result).toBe(-1);
     });
   });
 

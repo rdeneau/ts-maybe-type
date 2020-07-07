@@ -43,6 +43,12 @@ export interface Maybe<T> {
    * @summary A.k.a `defaultIfNone`, `orElse` (Java `Optional`), `FirstOrDefault` (C# LINQ)
    */
   valueOrDefault(defaultValue: T): T;
+
+  /**
+   * Unwrap the value if there is some or call the given function `getDefaultValue` and return its result.
+   * @summary A.k.a `orElseGet` (Java `Optional`)
+   */
+  valueOrGet(getDefaultValue: () => T): T;
 }
 
 export namespace Maybe {

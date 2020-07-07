@@ -25,4 +25,8 @@ export class None<T> implements Maybe<T> {
   valueOrDefault(defaultValue: T): T {
     return defaultValue;
   }
+
+  valueOrGet(getDefaultValue: () => T): T {
+    return getDefaultValue();
+  }
 }
