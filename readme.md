@@ -1,15 +1,52 @@
-# Maybe type - Object-oriented implementation in TypeScript
+# Object-oriented Maybe type in TypeScript
 
-`Maybe` is well designed, due to its mathematical foundations (*functor*, *monad* for instance) and built with functional programming principles. It will help us having a more crafted codebase.
+[![npm version](https://img.shields.io/npm/v/ts-maybe-type) ![npm download](https://img.shields.io/npm/dt/ts-maybe-type)](https://www.npmjs.com/package/ts-maybe-type)
 
-## Traits
+`Maybe`, a.k.a. `Option` in F♯, `Optional` in Java 8, is a well designed type, due to its mathematical foundations *(functor and monad)* and built with functional programming principles. Don't worry ! It's simple enough to be used without this background.
+
+💡 Its main benefit is to help having a codebase more robust *(`null` free)* and more structured *(separation of data flow and control flow)*.
+
+👉 The design is object-oriented: the type exposes methods like `map` and `filter`, so that they can be chained, offering a simpler syntax than a functional design (external functions `map`...) as long as TypeScript will not have operators like `|>` (pipe right) and `>>` (compose right).
+
+- [Introduction](#introduction)
+  - [TL;DR](#tldr)
+  - [Absence of value: `null` is still not ideal](#absence-of-value-null-is-still-not-ideal)
+  - [Principle of `Maybe`](#principle-of-maybe)
+  - [Partial operation / Creating `Maybe` instance](#partial-operation--creating-maybe-instance)
+  - [Opacity / Value accessibility](#opacity--value-accessibility)
+  - [Pattern matching with `match` method](#pattern-matching-with-match-method)
+  - [Intrinsic control flow](#intrinsic-control-flow)
+  - [Explicit data flow](#explicit-data-flow)
+- [Methods](#methods)
+  - [`map` method](#map-method)
+  - [`flatMap` method](#flatmap-method)
+  - [`filter` method](#filter-method)
+  - [`match` method](#match-method)
+  - [`valueOrDefault` method](#valueordefault-method)
+  - [`valueOrGet` method](#valueorget-method)
+  - [`traverse` function](#traverse-function)
+- [Code comparison: `null` vs `Maybe`](#code-comparison-null-vs-maybe)
+  - [1. Single optional result](#1-single-optional-result)
+  - [2. Chaining optional results](#2-chaining-optional-results)
+  - [3. Computation decomposed in transitional steps](#3-computation-decomposed-in-transitional-steps)
+- [FAQ](#faq)
+  - [How to create a `Maybe` instance ❓](#how-to-create-a-maybe-instance-)
+  - [How to exit from a `Maybe` instance ❓](#how-to-exit-from-a-maybe-instance-)
+  - [Is it a niche, a (software) crafter stuff, not for every developer ❓](#is-it-a-niche-a-software-crafter-stuff-not-for-every-developer-)
+  - [Do we need to replace `null` with `Maybe` everywhere ❓](#do-we-need-to-replace-null-with-maybe-everywhere-)
+  - [What about unit testing ❓](#what-about-unit-testing-)
+  - [What about its implementation ❓](#what-about-its-implementation-)
+
+## Introduction
+
+### TL;DR
 
 - Much more than a simple `null` substitute!
 - Easy to grasp due to the semantic and the similarity with `array` and its methods `filter`, `map`, `flatMap`
 - Robust and safe: in all cases, no runtime error by design *(no `null`, `undefined` billion dollars mistake)*
 - Ease splitting a business operation to improve the domain expression and simplify the code
 
-## Absence of value: `null` is still not ideal
+### Absence of value: `null` is still not ideal
 
 `Maybe` is a generic type to model the **absence of value**.
 
@@ -29,16 +66,16 @@ Still, `null` is in itself problematic as it can lead to:
   - ❌ Raises cyclomatic complexity
   - ❌ Looses readability
 
-## Principle of `Maybe`
+### Principle of `Maybe`
 
 `Maybe<T>` is a box that can contain:
 
 - either *some* value of a given type `T`,
 - or *none* (a.k.a. *nothing*, *empty*).
 
-This is how it models the absence of value.
+👉 This is how `Maybe` type models the **absence of value**.
 
-## Partial operation
+### Partial operation / Creating `Maybe` instance
 
 `Maybe` is useful as a return type of a function defining an operation that computes a value but may not be able to do it in some circumstances. We talk about [partial operation](https://en.wikipedia.org/wiki/Partial_function).
 
@@ -62,7 +99,7 @@ const invert = (n: number) =>
         // ------  ☝️
 ```
 
-## Opacity - Value accessibility
+### Opacity / Value accessibility
 
 When there's no value in the box, we don't want to throw an error or the return `undefined`. We don't to let the client code to rely on the Tester/Doer pattern (`if (hasValue) use(value)`) for its own safety. We better provide intrinsic safety by design.
 
@@ -74,7 +111,7 @@ The box is fully opaque but let us:
 - Perform some filtering/mapping operation on the optional inner value in the box,
 - Unwrap the optional value if we give a default value when there's none.
 
-## Pattern matching with `match` method
+### Pattern matching with `match` method
 
 This a variation of the *Visitor* design pattern, `match` being the equivalent of `accept(visitor)`. The aim is to get closed to the F♯ pattern matching syntax.
 
@@ -92,7 +129,7 @@ const message = maybeThree.match({   // match maybeThree with
 });
 ```
 
-## Intrinsic control flow
+### Intrinsic control flow
 
 Context: we are dealing with a business operation that is partial. It's complex enough so that we have split it in sub operations, some being partial too.
 
@@ -108,7 +145,22 @@ They respects functional programming principles that make code much safer:
 - *Immutability* : `Maybe` instance are immutable. If it has to change its value or toggle its status, it will do it in a new instance and return it. No other part in the codebase can interact / mutate the current object.
 - *Purity* : as long as the mapping/filtering function are pure, the overall operation will be pure = side-effect free = no mutation, no change out of scope => repeatability: same inputs will produce same outputs.
 
-## `map` method
+### Explicit data flow
+
+Since `map`, `flatMap`, `filter` methods can be chained, we can split an partial operation into sub operations, some of them being partial too.
+
+Advantages:
+
+- Each sub operation is simpler to understand and to test.
+- Express the happy path, the nominal case where every sub operations return a value.
+- Dealing with absence of value: only once, at the end
+  - With `valueOrDefault` or `valueOrGet` to get the final value, unwrapped or defaulted
+    - For instance a `string` with the formatted value or an error message
+  - With `match()` for a final operation producing a value (that can be of another type) or not (see Angular example of `traverse` function)
+
+## Methods
+
+### `map` method
 
 > *(a.k.a `Select` LINQ)*
 
@@ -136,7 +188,7 @@ const result = maybeThree.map(double);
   // Equivalent of `Maybe.some(6)`
 ```
 
-## `flatMap` method
+### `flatMap` method
 
 > *(a.k.a `bind`, `SelectMany` LINQ)*
 
@@ -182,7 +234,7 @@ const computeAverageOrderPrice = (clientId: number) =>
     .flatMap(computeAveragePrice);
 ```
 
-## `filter` method
+### `filter` method
 
 > *(a.k.a `Where` LINQ)*
 
@@ -199,7 +251,69 @@ const computeAverageOrderPrice = (clientId: number) =>
 2.  none()  ───► filter(    ....    ) ─┴─► none()
 ```
 
-## `traverse` function
+### `match` method
+
+- Signature: `match<U>(visitor: { some: (value: T) => U, none: () => U }): U`
+- Description: exhaustive pattern matching of the 2 cases (*some value* vs *none*), converging to a final *unwrapped* type `U` (that can be `void`).
+- Example:
+
+```ts
+const average = (total: number, count: number): Maybe<number> =>
+  Maybe.some(count)
+       .filter(x => x > 0)
+       .map(x => total / x);
+
+const testAverage = (total: number, count: number): void => {
+  const message = average(total, count).match({
+    some: x  => `given positive count (${count}), the average is ${x}`,
+    none: () => `given count 0, the average is None`,
+  });
+  console.log(message);
+}
+
+testAverage(100, 0);  // > given count 0, the average is None
+testAverage(100, 25); // > given positive count (25), the average is 4
+```
+
+☝️ **Note:** `match({ some, none })` is equivalent to chaining `map(some).valueOrGet(none)`.
+
+### `valueOrDefault` method
+
+> *(a.k.a `defaultIfNone`, `orElse` Java `Optional`, `FirstOrDefault` LINQ)*
+
+- Signature: `valueOrDefault(defaultValue: T): T`
+- Description: unwrap the value if there is some or return the given `defaultValue`.
+- Example:
+
+```ts
+declare function tryGenerateNumber(): Maybe<number>;
+
+const result =
+  tryGenerateNumber()
+    .map(square) //   >= 0
+    .flatMap(tryInvert)
+    .valueOrDefault(-1); //   < 0 expresses the "failure", the absence of value, like `Array::indexOf` does
+```
+
+### `valueOrGet` method
+
+> *(a.k.a `orElseGet` Java `Optional`)*
+
+- Signature: `valueOrGet(getDefaultValue: () => T): T`
+- Description: unwrap the value if there is some or call the given function `getDefaultValue` and return its result.
+- Example:
+
+```ts
+declare function tryGenerateNumber(): Maybe<number>;
+
+const result =
+  tryGenerateNumber()
+    .map(square) //   >= 0
+    .flatMap(tryInvert)
+    .valueOrGet(() => -1);
+```
+
+### `traverse` function
 
 - Given:
   - A set of values: `values: T[]`
@@ -236,39 +350,9 @@ declare function highlight(element: Element, search: string): Maybe<Element>;
 }
 ```
 
-## `valueOrDefault` method
-
-> *(a.k.a `orElse`, `defaultIfNone`, `FirstOrDefault` LINQ)*
-
-- Signature : `valueOrDefault(defaultValue: T): T`
-- Example:
-
-```ts
-declare function tryGenerateNumber(): Maybe<number>;
-
-const result =
-  tryGenerateNumber()
-    .map(square) //   >= 0
-    .flatMap(tryInvert)
-    .valueOrDefault(-1); //   < 0 expresses the "failure", the absence of value, like `Array::indexOf` does
-```
-
-## Data flow
-
-Since `map`, `flatMap`, `filter` methods can be chained, we can split an partial operation into sub operations, some of them being partial too.
-
-Advantages:
-
-- Each sub operation is simpler to understand and to test.
-- Express the happy path, the nominal case where every sub operations return a value.
-- Dealing with absence of value: only once, at the end
-  - With `valueOrDefault(defaultValue)` to get the final value, unwrapped or defaulted
-    - For instance a `string` with the formatted value or an error message
-  - With `match()` for a final operation producing a value or not (see Angular example above)
-
 ## Code comparison: `null` vs `Maybe`
 
-### 1. Single optionnel result
+### 1. Single optional result
 
 ```ts
 // V1 : with `null`
@@ -323,19 +407,38 @@ const result = tryGenerateNumber()
 
 ## FAQ
 
-> 🗯 Is it a niche, a crafter stuff, not for every developer ❓
+### How to create a `Maybe` instance ❓
 
-- Cliché! It's in Java since 2014 in it `Optional` form → it's *MainStream*!
+Use either:
+
+- `Maybe.some(value)` to wrap a value
+- `Maybe.none()` (or `Maybe.none<T>()` if necessary, specifying the proper `T`) to indicate the absence of value
+- `Maybe.ofNullable(nullableValue)` to convert a nullable value into a `Maybe` instance, either `some(value)` if the value is not `null` or `undefined`, else `none()`.
+
+☝️ **Notes:**
+
+- It's possible to wrap the value `null` in a `Maybe` instance but it's not recommended!
+- It's possible to wrap a function too. *TODO: talk about `apply` function*
+
+### How to exit from a `Maybe` instance ❓
+
+Use one of the following methods: `match` or `valueOrDefault` or `valueOrGet`. `match` converges to another type which can be `void`. In either cases, it is here where the possible absence of value is handled.
+
+👉 **Tips:** Delay this "exit" as much as possible, until having the whole partial operation recombined. Otherwise, you probably will have to handle the 2 cases (presence or absence of value) by hand, instead of delegating it to the `Maybe` instance.
+
+### Is it a niche, a (software) crafter stuff, not for every developer ❓
+
+- Cliché! It's in Java since 2014 as `Optional` → it's *MainStream*!
 - You can use it right now in a TypeScript codebase, front or back.
 
-> 🗯 Do we need to replace `null` with `Maybe` everywhere ❓
+### Do we need to replace `null` with `Maybe` everywhere ❓
 
 - ~~Everywhere~~ ❌ ! TypeScript ecosystem is *null friendly* (a lot of functions returning `null` or `undefined`). We cannot change it, but ensafe some part of our codebase, the one that is the more valuable or complex.
 - It's a compromise to found between quality and pragmatism
   - `null` can still be used in the simpler cases, with the `strictNullCheck` safety.
   - `Maybe` is preferable in the all other cases.
 
-> 🗯 What about unit testing ❓
+### What about unit testing ❓
 
 Not much more complicated than with a nullable value, since `Maybe` instances are "equatable":
 
@@ -344,8 +447,8 @@ Not much more complicated than with a nullable value, since `Maybe` instances ar
 | No value         | `toEqual(null)` | `toEqual(Maybe.none())`  |
 | Value            | `toBe(3)`       | `toEqual(Maybe.some(3))` |
 
-## Implementation details
+### What about its implementation ❓
 
-The implementation of the `Maybe` type is based on ad-hoc polymorphism, which is the better thing to do in TypeScript: the code is not stuffed with `if (hasValue) / else`.
+The implementation of the `Maybe` type is based on ad-hoc polymorphism, which is the better thing to do in TypeScript: the code is not bloated with `if (hasValue) use(value) else useNone()`!
 
-The 2 cases, `Some` and `None` are coded in separate objects, constructed with classes so that the instances can be equatable for free (the methods being in the prototype, they are not used for comparison, contrary to object literals holding their methods as own members).
+The 2 cases, `Some` and `None` are coded in separate objects. They are constructed using classes, not using object literals, so that the instances can be equatable i.e. usable with asserter like Jasmine/Jest `expect(result).toEqual(Maybe.some(value))`. It's due to the fact that, since the methods are in the prototype, they are not used for comparison, contrary to object literals holding their methods as own members.

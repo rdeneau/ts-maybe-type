@@ -1,7 +1,7 @@
 {
   "name": "ts-maybe-type",
-  "version": "1.0.0",
-  "description": "Object-oriented implementation of the Maybe type in TypeScript",
+  "version": "1.0.1",
+  "description": "Object-oriented Maybe type in TypeScript",
   "files": [
     "dist/**/*"
   ],
