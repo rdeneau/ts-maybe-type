@@ -1,4 +1,4 @@
-import { None }             from './none';
+import { None }                  from './none';
 import { Some }                  from './some';
 import { nil, PredicateOrGuard } from './utility-types';
 
@@ -59,9 +59,17 @@ export namespace Maybe {
     some(value).filter<T>(x => x != null);
 }
 
-export function traverse<T, U>(items: T[], tryMap: (item: T) => Maybe<U>): Maybe<U[]> {
+// export function apply<A, B>(maybeFn: Maybe<(a: A) => B>, maybeA: Maybe<A>): Maybe<B>;
+// export function apply<A, B, C>(maybeFn: Maybe<(a: A, b: B) => C>, maybeA: Maybe<A>, maybeB: Maybe<B>): Maybe<C>;
+// export function apply<A, B, C, D>(maybeFn: Maybe<(a: A, b: B, c: C) => D>, maybeA: Maybe<A>, maybeB: Maybe<B>, maybeC: Maybe<C>): Maybe<D>;
+// export function apply<A, B, C, D, E>(maybeFn: Maybe<(a: A, b: B, c: C, d: D) => E>, maybeA: Maybe<A>, maybeB: Maybe<B>, maybeC: Maybe<C>, maybeD: Maybe<D>): Maybe<E>;
+// export function apply(maybeFn: Maybe<(...args: any[]) => any>, ...maybeArgs: Maybe<any>[]): Maybe<any> {
+//
+// }
+
+export function traverse<T, U>(items: T[], tryMap: (item: T, index: number) => Maybe<U>): Maybe<U[]> {
   const someItems = items.reduce(
-    (result: Maybe<U[]>, item: T) => tryMap(item).match({
+    (result: Maybe<U[]>, item: T, index: number) => tryMap(item, index).match({
       some: x => result.map(xs => xs.concat(x)),
       none: () => result,
     }),

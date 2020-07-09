@@ -172,5 +172,13 @@ describe('Maybe', () => {
       const result = traverse(inputs, tryDoubleOddNumber);
       expect(result).toEqual(Maybe.some(expected));
     });
+
+    it('should pass index to the mapping function', () => {
+      const result = traverse(['aaa', 'bbb', 'ccc'], (item, index) =>
+        index > 0
+        ? Maybe.some(item.substring(0, index))
+        : Maybe.none<string>());
+      expect(result).toEqual(Maybe.some(['b', 'cc']));
+    });
   });
 });
