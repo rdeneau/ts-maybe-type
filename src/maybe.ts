@@ -1,6 +1,6 @@
-import { None }                  from './none';
-import { Some }                  from './some';
-import { nil, PredicateOrGuard } from './utility-types';
+import { None }                              from './none';
+import { Some }                              from './some';
+import { KeyOfTuple, nil, PredicateOrGuard } from './utility-types';
 
 export interface Maybe<T> {
   /**
@@ -59,13 +59,33 @@ export namespace Maybe {
     some(value).filter<T>(x => x != null);
 }
 
-// export function apply<A, B>(maybeFn: Maybe<(a: A) => B>, maybeA: Maybe<A>): Maybe<B>;
-// export function apply<A, B, C>(maybeFn: Maybe<(a: A, b: B) => C>, maybeA: Maybe<A>, maybeB: Maybe<B>): Maybe<C>;
-// export function apply<A, B, C, D>(maybeFn: Maybe<(a: A, b: B, c: C) => D>, maybeA: Maybe<A>, maybeB: Maybe<B>, maybeC: Maybe<C>): Maybe<D>;
-// export function apply<A, B, C, D, E>(maybeFn: Maybe<(a: A, b: B, c: C, d: D) => E>, maybeA: Maybe<A>, maybeB: Maybe<B>, maybeC: Maybe<C>, maybeD: Maybe<D>): Maybe<E>;
-// export function apply(maybeFn: Maybe<(...args: any[]) => any>, ...maybeArgs: Maybe<any>[]): Maybe<any> {
-//
-// }
+/**
+ * Apply an optional curried function one argument at a time, each argument being optional too.
+ * To fully apply a N-ary function, call `apply` N times.
+ * @param fun: optional curried function
+ * @param arg: optional argument to apply to `fun`
+ */
+export function apply<T, U>(fun: Maybe<(value: T) => U>, arg: Maybe<T>): Maybe<U> {
+  return fun.match({
+    none: () => Maybe.none<U>(),
+    some: fn => arg.map(value => fn(value)),
+  });
+}
+
+type ParametersAsMaybe<F extends (...args: any[]) => any, P extends any[] = Parameters<F>> = {
+  [K in keyof P]: K extends KeyOfTuple<P> ? Maybe<P[K]> : never
+} & { length: P['length'] } & any[];
+
+/**
+ * Try to call the given N-ary function `fn` from the given N optional values `maybeArgs` when all are present.
+ * @param fn: function to call
+ * @param maybeArgs: optional values to pass as arguments to `fn` when all are present.
+ */
+export function mapN<F extends (...args: any[]) => any>(fn: F, ...maybeArgs: ParametersAsMaybe<F>): Maybe<ReturnType<F>> {
+  return traverse(maybeArgs, x => x)
+    .filter(args => args.length === maybeArgs.length)
+    .map(args => fn(...args));
+}
 
 export function traverse<T, U>(items: T[], tryMap: (item: T, index: number) => Maybe<U>): Maybe<U[]> {
   const someItems = items.reduce(

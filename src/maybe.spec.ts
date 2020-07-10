@@ -1,4 +1,4 @@
-import { Maybe, traverse } from './maybe';
+import { apply, mapN, Maybe, traverse } from './maybe';
 
 describe('Maybe', () => {
   const content = { id: 123, label: 'any label' };
@@ -181,4 +181,67 @@ describe('Maybe', () => {
       expect(result).toEqual(Maybe.some(['b', 'cc']));
     });
   });
+
+  describe('apply', () => {
+    const computeOrderItemPrice = (orderItem: OrderItem): Maybe<number> =>
+      apply(apply(
+        Maybe.some(applyDiscountCurried),
+        tryGetPrice(orderItem.productId)),
+        tryGetDiscount(orderItem.discountId));
+
+    it(`should compute price given all arguments`, () => {
+      const result = computeOrderItemPrice({ productId: 'A', discountId: '10%' });
+      expect(result).toEqual(Maybe.some(90));
+    });
+
+    it(`should return none given unknown product`, () => {
+      const result = computeOrderItemPrice({ productId: '❌', discountId: '10%' });
+      expect(result).toEqual(Maybe.none());
+    });
+
+    it(`should return none given unknown product`, () => {
+      const result = computeOrderItemPrice({ productId: 'A', discountId: '❌' });
+      expect(result).toEqual(Maybe.none());
+    });
+  });
+
+  describe('mapN', () => {
+    const computeOrderItemPrice = (orderItem: OrderItem): Maybe<number> =>
+      mapN(applyDiscount,
+        tryGetPrice(orderItem.productId),
+        tryGetDiscount(orderItem.discountId));
+
+    it(`should compute price given all arguments`, () => {
+      const result = computeOrderItemPrice({ productId: 'A', discountId: '10%' });
+      expect(result).toEqual(Maybe.some(90));
+    });
+
+    it(`should return none given unknown product`, () => {
+      const result = computeOrderItemPrice({ productId: '❌', discountId: '10%' });
+      expect(result).toEqual(Maybe.none());
+    });
+
+    it(`should return none given unknown product`, () => {
+      const result = computeOrderItemPrice({ productId: 'A', discountId: '❌' });
+      expect(result).toEqual(Maybe.none());
+    });
+  });
+
+  type OrderItem = { productId: 'A' | '❌'; discountId: '10%' | '❌'; };
+
+  function tryGetPrice(productId: 'A' | '❌'): Maybe<number> {
+    return Maybe.some(100).filter(() => productId === 'A');
+  }
+
+  function tryGetDiscount(discountId: '10%' | '❌'): Maybe<number> {
+    return Maybe.some(10).filter(() => discountId === '10%');
+  }
+
+  function applyDiscount(price: number, discountPercentage: number): number {
+    return price * (100 - discountPercentage) / 100;
+  }
+
+  function applyDiscountCurried(price: number): (discountPercentage: number) => number {
+    return (discountPercentage: number) => applyDiscount(price, discountPercentage);
+  }
 });
